@@ -56,10 +56,42 @@ The OpenFOAM distribution provided by the [OpenFOAM Foundation](https://openfoam
 
 ## Running a Case
 
-In order to run the solver move to the case directory and type in the command line
+In order to run the solver move to the case folder _heatAdjoinFoamCase_ and type in the command line
 
 ```
+./Allprepare
+
 heatAdjointFoam
+```
+
+The _heatAdjointFoam_ solver has been tested in a square domain <img src="https://latex.codecogs.com/gif.latex?%5B0%2C%201%5D%20%5Ctimes%20%5B0%2C%201%5D"> with zero Dirichlet boundary conditions and <img src="https://latex.codecogs.com/gif.latex?%5Cbeta%20%3D%2010%5E%7B-3%7D%2C10%5E%7B-4%7D%2C10%5E%7B-5%7D%2C10%5E%7B-6%7D">. The target function is <img src="https://latex.codecogs.com/gif.latex?y_d%20%3D%20xy%20%5Csin%20%5Cleft%28%20%5Cpi%20x%20%5Cright%29%20%5Csin%20%5Cleft%28%20%5Cpi%20y%20%5Cright%29">.
+
+<p align="center">
+  <img src="heatAdjointFoamCase/J_b2_1_b3_0.png">
+</p>
+
+<p align="center">
+  <img src="heatAdjointFoamCase/Jy_b2_1_b3_0.png">
+</p>
+
+### Warning
+
+It might be needed to use 
+
+```
+sed -i -e 's/\r$//' filename
+```
+
+and
+
+```
+chmod +x filename
+```
+
+in order to be able to execute 
+
+```
+./filename
 ```
 
 ## Author

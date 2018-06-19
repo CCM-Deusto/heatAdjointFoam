@@ -50,9 +50,10 @@ int main(int argc, char *argv[])
     // Initialize iteration counter
     label iter = 1;
 
-    while (iter <= maxIter && pL2 >= tol)
+    while (iter <= maxIter && pL2 >= tol && J <= Ja)
     {
 	// Initialize cost function
+	Ja = J;
         J = 0;
 	Ju = 0;
 	Jy = 0;
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
 
 	// Cost functional
 	JY = 0.5 * gSum(volField * (beta3 * Foam::pow(y.internalField() - Yd.internalField(), 2) ) );
-	J = Jy + Ju + JY;	
+	J = Jy + Ju + JY;
 
 	// Write source term for the adjoint equation
         #include "writeAdjointSourceTerm.H"

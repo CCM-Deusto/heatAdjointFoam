@@ -5,7 +5,8 @@ scalar t = 0;
 scalar ta = 0;
 
 // Cost function integrated in time
-scalar J = 0;
+scalar Ja = GREAT;
+scalar J = GREAT;
 scalar Jy = 0;
 scalar Ju = 0;
 scalar JY = 0;

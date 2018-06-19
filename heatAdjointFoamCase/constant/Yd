@@ -52,8 +52,7 @@ internalField   #codeStream
 		const scalar xx = mesh.C()[i][0];
 		const scalar yy = mesh.C()[i][1];
 
-		Yd[i] = sin(constant::mathematical::pi*xx)*sin(constant::mathematical::pi*yy);
-		//Yd[i] = 0;
+		Yd[i] = xx*yy*sin(constant::mathematical::pi*xx)*sin(constant::mathematical::pi*yy);
 	    }
 
 	    Yd.writeEntry("", os);
