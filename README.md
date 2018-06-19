@@ -1,4 +1,4 @@
-# Interior Control of the Heat Equation with the Steepest Descent Method
+# Interior Control of the Heat Equation with the Steepest Descent Method and OpenFOAM
 
 This is an OpenFOAM solver for the distributed control of the heat equation through the minimization problem
 
