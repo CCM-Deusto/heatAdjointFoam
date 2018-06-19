@@ -65,7 +65,7 @@ heatAdjointFoam
 ## Author
 
 * **Jose Lorenzo Gomez**
-* **Víctor Hernández Santamaría**
+* **Víctor Hernández-Santamaría**
 
 ## Acknowledgments
 
