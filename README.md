@@ -65,3 +65,10 @@ heatAdjointFoam
 ## Author
 
 * **Jose Lorenzo Gomez**
+* **Víctor Hernández Santamaría**
+
+## Acknowledgments
+
+This project has received funding from the European Research Council (ERC) under the European  Union’s Horizon 2020 research and innovation programme (grant agreement No. 694126-DyCon).
+ 
+[DyCon Webpage](http://cmc.deusto.eus/dycon/)
