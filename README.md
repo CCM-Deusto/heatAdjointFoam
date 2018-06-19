@@ -75,7 +75,7 @@ The _heatAdjointFoam_ solver has been tested in a square domain <img src="https:
 </p>
 
 <p align="center">
-  <img src="heatAdjointFoamCase/anim_y_b6.gif">
+  <img src="heatAdjointFoamCase/anim_y_b6.gif" width="500" height="300">
 </p>
 
 ### Warning
