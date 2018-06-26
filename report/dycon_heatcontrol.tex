@@ -1,0 +1,285 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+%\usepackage{tikz}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{amsthm}
+
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\newcommand{\drm}{\mathrm{d}}
+\newcommand{\pd}[2]{\frac{\partial{#1}}{\partial{#2}}}\newcommand{\pdv}[2]{\frac{\partial{#1}}{\partial{#2}}\delta{#2}} 
+\newcommand{\pdt}[2]{\frac{\partial{#1}}{\partial{#2}} \frac{\mathrm{d}{#2}}{\mathrm{d}\theta} \delta{\theta} }
+\newcommand{\var}[1]{\delta{#1}}
+\newcommand{\eps}[1]{{#1}^{\epsilon}}
+\newcommand{\limeps}{\lim_{\epsilon \to 0}}
+\newcommand{\Om}{\Omega}
+\newcommand{\Omth}{\Omega\left(\theta\right)}
+\newcommand{\Omfth}{\Omega_f\left(\theta\right)}
+\newcommand{\Gth}{\Gamma\left(\theta\right)}
+\newcommand{\Gsth}{\Gamma_s\left(\theta\right)}
+\newcommand{\Gfth}{\Gamma_f\left(\theta\right)}
+\newcommand{\Omft}{\Omega_f\left(t\right)}
+\newcommand{\Gft}{\Gamma_f\left(t\right)}
+\newcommand{\lagr}{\mathcal{L}}
+\newcommand{\ddt}{\frac{\mathrm{d}}{\mathrm{d}t}}
+\newcommand{\thetaeps}{\theta^{\epsilon}}
+\newcommand{\dom}{\ \mathrm{d} \Omega}
+\newcommand{\dg}{\ \mathrm{d} \Gamma}
+\newcommand{\dt}{\ \mathrm{d} t}
+\newcommand{\LomT}{L^2 \left( \Omega \times \left( 0 , T \right) \right)}
+
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+
+\usepackage{tikz}
+\usetikzlibrary{backgrounds}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{external}
+\tikzexternalize[]
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem} % reset theorem numbering for each chapter
+
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition} % definition numbers are dependent on theorem numbers
+\newtheorem{exmp}[thm]{Example} % same for example numbers
+
+\begin{document}
+
+\title{Interior Control of the Heat Equation with OpenFOAM}
+\author{Víctor Hernández-Santamaría \thanks{DeustoTech, University of Deusto.} \and José Vicente Lorenzo Gómez \thanks{Universidad Autónoma de Madrid.} }
+
+\maketitle
+
+
+Let us consider the distributed control of the heat equation through the minimization problem
+%
+\begin{equation}
+\begin{split}
+\min_{u \in L^2 \left( \Omega \times \left( 0 , T \right) \right)} \mathcal{J} \left( u , y \left( u \right) \right) = \min_{u \in L^2 \left( \Omega \times \left( 0 , T \right) \right)} & \frac{\beta_1}{2} \int_0^T \int_{\Omega} u^2 \dom \dt + \frac{\beta_2}{2}\int_0^T \int_{\Omega} \left( y - y_d \right)^2 \dom \dt \\ & + \frac{\beta_3}{2} \int_{\Omega} \left( y\left( \cdot, T \right) - Y_d \right)^2 \dom, \quad \beta_1, \ \beta_2, \ \beta_3 \in \mathbb{R}^+,
+\end{split}
+\end{equation}
+%
+where $u$ is the control, $y$ is the state variable, $y_d$ is the target state in $\Omega \times \left( 0, T \right)$, and $Y_d$ is the target state at time $T$. The optimization problem is subject to the state equation,
+%
+\begin{equation}
+\begin{cases}
+\partial_t y - \Delta y = f + u & \text{in } Q = \Omega \times \left( 0, T \right),\\
+y = y_D & \text{on } \Sigma_D = \Gamma_D \times \left( 0, T \right),\\
+\displaystyle \frac{\partial y}{\partial n} = y_N & \text{on } \Sigma_N = \Gamma_N \times \left( 0, T \right),\\
+y \left( \cdot, 0 \right) = y_0 & \text{in } \Omega,
+\end{cases}
+\end{equation}
+%
+with $\Gamma = \Gamma_D \cup \Gamma_N$ and $\Gamma_D \cap \Gamma_N= \emptyset$.
+
+Since the problem is linear the solution can be separated into a part that depends on the known source term, boundary conditions, and initial condition; and a control-dependent term as
+%
+\begin{equation}
+y = y_f + y_u,
+\end{equation}
+%
+where
+%
+\begin{equation} \label{eq:heatOptyfPDE}
+\begin{cases}
+\partial_t y_f - \Delta y_f = f & \text{in } Q,\\
+y_f = y_D & \text{on } \Sigma_D, \vspace{1mm}\\
+\displaystyle \frac{\partial y_f}{\partial n} = y_N & \text{on } \Sigma_N,\\
+y_f \left( \cdot, 0 \right) = y_0 & \text{in } \Omega.
+\end{cases}
+\end{equation}
+%
+and
+%
+\begin{equation} \label{eq:heatOptyuPDE}
+\begin{cases}
+\partial_t y_u - \Delta y_u = u & \text{in } Q, \\
+y_u = 0 & \text{on } \Sigma_D, \vspace{1mm}\\
+\displaystyle \frac{\partial y_u}{\partial n} = 0 & \text{on } \Sigma_N,\\
+y_u \left( \cdot, 0 \right) = 0 & \text{in } \Omega.
+\end{cases}
+\end{equation}
+
+Let us multiply the PDE in \eqref{eq:heatOptyuPDE} by $\varphi$ in $L^2 \left( Q \right)$,
+%
+\begin{equation*}
+\int \int_Q \varphi \left( \partial_t y_u - \Delta y_u - u \right) \dom \dt = 0, \quad \forall \varphi \in L^2 \left( Q \right),
+\end{equation*}
+
+and integrate by parts twice,
+%
+\begin{equation*}
+\begin{split}
+\int_{\Omega} \left( \varphi \left( T \right) y_u \left( T \right) - \varphi \left( 0 \right) \underbrace{y_u \left( 0 \right)}_{=0} \right) \dom - \int \int_Q y_u \left( \partial_t \varphi + \Delta y_u \right) \dom \dt - \int \int_Q \varphi \ u \dom \dt \\ - \int \int_{\Sigma} \varphi \underbrace{\displaystyle \frac{\partial y_u}{\partial n}}_{=0 \text{ on } \Sigma_N} \dg \dt + \int \int_{\Sigma} \underbrace{y_u}_{=0 \text{ on } \Sigma_D} \displaystyle \frac{\partial \varphi}{\partial n} \ \dg \dt = 0.
+\end{split}
+\end{equation*}
+
+One can get rid of the boundary terms by setting
+%
+\begin{equation} \label{eq:heatOptAdjointBC}
+\begin{cases}
+\varphi = 0, & \text{on } \Sigma_D, \\
+\displaystyle \frac{\partial \varphi}{\partial n} = 0, & \text{on } \Sigma_N.
+\end{cases}
+\end{equation}
+
+Thus,
+%
+\begin{equation} \label{eq:heatOptAdjoint}
+\left( \varphi \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2 \left( \Omega \right)} + \left( -\partial_t \varphi - \Delta \varphi, y_u \right)_{L^2\left( Q \right)} = \left( \varphi, u \right)_{L^2\left( Q \right)}.
+\end{equation}
+
+Moreover, by developing the terms in the cost function one gets
+%
+\begin{equation*}
+\begin{split}
+\mathcal{J} = & \frac{1}{2} \left[ \beta_3 \left( y_u \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left( y_u, y_u \right)_{L^2\left( Q \right)} \right] \\
+& - \left[  \beta_3 \left( Y_d - y_f \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left(y_d - y_f, y_u \right)_{L^2\left( Q \right)} \right] \\
+&  + \frac{1}{2} \left[ \beta_3 \left( Y_d - y_f \left( \cdot, T \right), Y_d - y_f \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left( y_d - y_f, y_d - y_f \right)_{L^2\left( Q \right)} \right] \\
+& + \frac{\beta_1}{2} \left( u, u \right)_{L^2\left( Q \right)}.
+\end{split}
+\end{equation*}
+\iffalse
+\begin{equation*}
+\begin{split}
+\mathcal{J} = & \frac{\beta_1}{2} \left( u, u \right)_{L^2\left(Q \right)} + \frac{\beta_2}{2} \left( y_u, y_u \right)_{L^2\left(Q\right)} - \beta_2 \left(y_d - y_f, y_u \right)_{L^2\left(Q \right)} + \\ & \frac{\beta_2}{2} \left( y_d - y_f, y_d - y_f \right)_{L^2\left( Q \right)} + \frac{\beta_3}{2} \left( y_u \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} - \\ & \beta_3 \left( Y_d - y_f \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \frac{\beta_3}{2} \left( Y_d - y_f \left( \cdot, T \right), Y_d - y_f \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} = \\
+= & \frac{1}{2} \left[ \beta_3 \left( y_u \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left( y_u, y_u \right)_{L^2\left( Q \right)} \right] - \\
+& \left[  \beta_3 \left( Y_d - y_f \left( \cdot, T \right), y_u \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left(y_d - y_f, y_u \right)_{L^2\left( Q \right)} \right] + \\
+& \frac{1}{2} \left[ \beta_3 \left( Y_d - y_f \left( \cdot, T \right), Y_d - y_f \left( \cdot, T \right) \right)_{L^2\left(\Omega\right)} + \beta_2 \left( y_d - y_f, y_d - y_f \right)_{L^2\left( Q \right)} \right] + \\
+& \frac{\beta_1}{2} \left( u, u \right)_{L^2\left( Q \right)}.
+\end{split}
+\end{equation*}
+\fi
+
+Let us introduce the space $H=L^2 \left( \Omega \right) \times L^2 \left( Q \right)$ and take $\left( \Phi_1, \phi_1 \right) \in H$, $\left( \Phi_2, \phi_2 \right) \in H$, we define the inner product in $H$ as
+%
+\begin{equation} \label{eq:heatOptInternalProductH}
+\left[ \left( \Phi_1, \phi_1 \right), \left( \Phi_2, \phi_2 \right) \right]_H = \beta_3 \left( \Phi_1, \Phi_2 \right)_{L^2 \left( \Omega \right)} + \beta_2 \left( \phi_1, \phi_2 \right)_{L^2\left( Q \right)},
+\end{equation}
+%
+so that \eqref{eq:heatOptAdjoint} becomes
+%
+\begin{equation} \label{eq:heatOptAdjoint2}
+\left[ \left( \frac{1}{\beta_3} \varphi \left( \cdot, T \right), \frac{1}{\beta_2} \left(-\partial_t \varphi - \Delta \varphi \right) \right), \left( y_u \left( \cdot, T \right), y_u \right) \right]_H = \left( \varphi, u \right)_{L^2\left( Q \right)},
+\end{equation}
+%
+and the cost functional can be expressed as
+%
+\begin{equation*}
+\begin{split}
+\mathcal{J} = & \frac{1}{2} \left[ \left( y_u \left( \cdot, T \right), y_u \right), \left( y_u \left( \cdot, T \right), y_u \right) \right]_H - \left[ \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \left( y_u \left( \cdot, T \right), y_u \right) \right]_H \\ & + \frac{1}{2} \left[ \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right) \right]_H + \frac{\beta_1}{2} \left( u, u \right)_{L^2\left( Q \right)}.
+\end{split}
+\end{equation*}
+
+We now define a linear operator $\Lambda: L^2\left( Q \right) \rightarrow H$ that takes a control $u \in L^2\left( Q \right)$ and returns the state $\Lambda u = \left( y_u (\left( \cdot, T \right), y_u \right) \in H$, this yields
+%
+\begin{equation} \label{eq:costFunctionOperator}
+\begin{split}
+\mathcal{J} = & \frac{1}{2} \left[ \Lambda u, \Lambda u \right]_H + \frac{\beta_1}{2} \left( u, u \right)_{L^2\left(Q \right)} - \left[ \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \Lambda u \right]_H \\ & + \frac{1}{2} \left[ \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right) \right]_H.
+\end{split}
+\end{equation}
+
+By the definition of adjoint operator,
+%
+\begin{equation*} 
+\left[ \left( \Phi, \phi \right), \Lambda u \right]_H = \left( \Lambda^* \left( \Phi, \phi \right), u \right)_{L^2\left(\Omega \times \left( 0, T \right) \right)}, \quad \forall u \in L^2\left( Q \right), \quad \forall \left( \Phi, \phi \right) \in H,
+\end{equation*}
+
+and from \eqref{eq:costFunctionOperator} one concludes that $\Lambda^* \left( y_u \left( \cdot, T \right), y_u \right) = \varphi$ with $\varphi$ solution to the adjoint problem
+%
+\begin{equation}
+\begin{cases}
+-\partial_t \varphi - \Delta \varphi = \beta_2 y_u, & \text{in } Q, \\
+\varphi\left( \cdot, T \right) = \beta_3 y_u \left( \cdot, T \right), & \text{in } \Omega, \\
+\varphi = 0, & \text{on } \Sigma_D, \\
+\displaystyle \frac{\partial \varphi}{\partial n} = 0, & \text{on } \Sigma_N,
+\end{cases}
+\end{equation}
+%
+where the boundary conditions come from \eqref{eq:heatOptAdjointBC}.
+
+
+
+Now the Gâteaux derivative of $\mathcal{J}$ with respect to the control $u$ in the direction $\delta u$ yields
+%
+\begin{equation*}
+\begin{split}
+\mathcal{D}_{\delta u}\mathcal{J} = & \left[ \Lambda u, \Lambda \delta u \right]_H + \beta_1 \left( u, \delta u \right)_{L^2\left(Q \right)} - \left[ \left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \Lambda \delta u \right]_H = \\
+= & \left( \left( \Lambda^* \Lambda + \beta_1 I \right)u - \Lambda^*\left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right), \delta u \right)_{L^2\left(Q \right)},
+\end{split}
+\end{equation*}
+%
+from where one can deduce the functional gradient that provides local information about how the control must be updated in order to make the cost decrease,
+%
+\begin{equation} \label{eq:heatOptGradient}
+\mathcal{J}^\prime \left( u \right) = \left( \Lambda^* \Lambda + \beta_1 I \right)u - \Lambda^*\left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right).
+\end{equation}
+
+In the steepest descent method the cost gradient is used to update the control as
+%
+\begin{equation*}
+u^{\left( n + 1 \right)} = u^{\left( n \right)} - \epsilon \mathcal{J}^\prime \left( u^{\left( n \right)} \right), \quad \epsilon \in \mathbb{R}^+,
+\end{equation*}
+%
+with $\epsilon$ sufficiently small. This method, however, shows a rather slow convergence rate, and the value of $\epsilon$ is chosen arbitrarily. For these reasons it is advisable to use the conjugate gradient method instead, as it converges faster and not only gives the descent direction but the step size as well. In order to apply it we define
+%
+\begin{align*}
+A_{cg} & = \Lambda^* \Lambda + \beta_1 I : L^2\left(Q \right) \rightarrow L^2\left(Q \right), \\
+b_{cg} & = \Lambda^*\left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right) \in L^2\left(Q \right),
+\end{align*}
+%
+so that the cost gradient reads as
+%
+\begin{equation*}
+\mathcal{J}^\prime \left( u \right) = A_{cg} u - b_{cg}.
+\end{equation*}
+
+The steepest descent method has been coded with the C++ library OpenFOAM.
+
+\iffalse
+
+\begin{algorithm}[H]
+\caption{Optimal control of the Heat Equation with the Conjugate Gradient Method}\label{CGalgorithm}
+\begin{algorithmic}[1]
+\Require $y_D$, $y_N$, $y_0$, $u^{\left(0\right)}$, $\beta_1$, $\beta_2$, $\beta_3$, $y_d$, $Y_d$, $tol$
+\State $n \gets 0 $
+\State compute the control-free solution by solving \eqref{eq:heatOptyfPDE}, $y_f$
+\State $b \gets \Lambda^*\left( Y_d - y_f \left( \cdot, T \right), y_d - y_f \right)$
+\State $\left( z \left( \cdot, T \right), z \right)  \gets \Lambda u$
+\State $g \gets \Lambda^*\left( z \left( \cdot, T \right), z \right) + \beta_1 u - b$
+\State $h \gets \|g\|^2_{\LomT}$
+\State $h_a \gets h$
+\State $r \gets -g$
+\While{$\|r\|_{\LomT} > tol $}
+\State $\left( z \left( \cdot, T \right), z \right) \gets \Lambda r$
+\State $w \gets \Lambda^*\left( z \left( \cdot, T \right), z \right) + \beta_1 r$
+\State $\alpha \gets \displaystyle \frac{h}{\left(r,w\right)_{\LomT}}$
+\State $u \gets u + \alpha r$
+\State $g \gets g + \alpha w$
+\State $h_a \gets h$
+\State $h \gets  \|g\|^2_{\LomT}$
+\State $\gamma \gets \displaystyle \frac{h}{h_a}$
+\State $r \gets -g + \gamma r$
+\State $n \gets n + 1$
+\EndWhile
+
+\end{algorithmic}
+\end{algorithm}
+
+\fi
+
+
+\end{document}
