@@ -109,7 +109,7 @@ heatAdjointFoam
 </p>
 
 <p align="center">
-   <a href="https://github.com/ChairOfComputationalMathematics/heatAdjointFoam/blob/master/heatAdjointFoamCase/anim_Y_b6.gif" target="_blank"><img src="heatAdjointFoamCase/anim_Y_b6.gif"></a>
+   <a href="https://github.com/ChairOfComputationalMathematics/heatAdjointFoam/blob/master/heatAdjointFoamCase/anim_Y_b6.gif" target="_blank"><img src="heatAdjointFoamCase/anim_Y_b6.gif" width="500" height="300"></a>
 </p>
 
 <p align="center">
