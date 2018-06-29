@@ -67,7 +67,7 @@ heatAdjointFoam
 * The _heatAdjointFoam_ solver has been tested in a square domain <img src="https://latex.codecogs.com/gif.latex?%5B0%2C%201%5D%20%5Ctimes%20%5B0%2C%201%5D"> with zero Dirichlet boundary conditions, <img src="https://latex.codecogs.com/gif.latex?%5Cepsilon%3D100">, and <img src="https://latex.codecogs.com/gif.latex?%5Cbeta_1%20%3D%2010%5E%7B-3%7D%2C10%5E%7B-4%7D%2C10%5E%7B-5%7D%2C10%5E%7B-6%7D">, <img src="https://latex.codecogs.com/gif.latex?%5Cbeta_2%20%3D%201">, <img src="https://latex.codecogs.com/gif.latex?%5Cbeta_3%20%3D%200">. The target function is <img src="https://latex.codecogs.com/gif.latex?y_d%20%3D%20xy%20%5Csin%20%5Cleft%28%20%5Cpi%20x%20%5Cright%29%20%5Csin%20%5Cleft%28%20%5Cpi%20y%20%5Cright%29">.
 
 <p align="center">
-  <img src="heatAdjointFoamCase/J_b2_1_b3_0.png">
+   <a href="https://github.com/ChairOfComputationalMathematics/heatAdjointFoam/blob/master/heatAdjointFoamCase/J_b2_1_b3_0.png" target="_blank"><img src="heatAdjointFoamCase/J_b2_1_b3_0.png"></a>
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@ heatAdjointFoam
 </p>
 
 <p align="center">
-  <img src="heatAdjointFoamCase/Jy_b2_1_b3_0.png">
+   <a href="https://github.com/ChairOfComputationalMathematics/heatAdjointFoam/blob/master/heatAdjointFoamCase/Jy_b2_1_b3_0.png" target="_blank"><img src="heatAdjointFoamCase/Jy_b2_1_b3_0.png"></a>
 </p>
 
 <p align="center">
@@ -83,7 +83,7 @@ heatAdjointFoam
 </p>
 
 <p align="center">
-  <img src="heatAdjointFoamCase/anim_y_b6.gif" width="500" height="300">
+   <a href="https://github.com/ChairOfComputationalMathematics/heatAdjointFoam/blob/master/heatAdjointFoamCase/anim_y_b6.gif" target="_blank"><img src="heatAdjointFoamCase/anim_y_b6.gif"></a>
 </p>
 
 <p align="center">
